@@ -105,6 +105,13 @@ if DATABASE_URL:
             conn_max_age=600,
         )
     }
+    # Forzar search_path=public para evitar problemas de esquema en Render PostgreSQL.
+    # Render configura search_path="$user", public por defecto, lo que puede causar
+    # que las tablas se creen en el esquema del usuario y no sean visibles en migraciones
+    # subsecuentes que buscan en 'public'.
+    DATABASES['default']['OPTIONS'] = {
+        'options': '-c search_path=public'
+    }
 else:
     # Desarrollo local: SQLite
     DATABASES = {
