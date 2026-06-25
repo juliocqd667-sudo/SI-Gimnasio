@@ -176,3 +176,19 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ]
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FIX: Forzar search_path=public en cada conexión PostgreSQL (Render)
+# ─────────────────────────────────────────────────────────────────────────────
+# Render configura el rol de PostgreSQL con search_path="$user",public
+# que puede dirigir DDL (CREATE TABLE) a un esquema de usuario en vez de public.
+# Esto causa que las migraciones subsecuentes no encuentren las tablas recién creadas.
+# La señal connection_created se ejecuta en CADA conexión nueva, incluyendo
+# las que usa el schema_editor durante las migraciones.
+def _set_search_path_public(sender, connection, **kwargs):
+    if connection.vendor == 'postgresql':
+        with connection.cursor() as cursor:
+            cursor.execute("SET search_path TO public")
+
+from django.db.backends.signals import connection_created
+connection_created.connect(_set_search_path_public)

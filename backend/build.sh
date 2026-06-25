@@ -17,12 +17,12 @@ pip install -r requirements.txt
 echo ">>> DJANGO TASKS"
 python manage.py collectstatic --no-input
 
-echo ">>> LIMPIANDO TABLAS RESIDUALES"
+echo ">>> PREPARANDO POSTGRESQL (search_path + limpieza)"
 python - <<'PYEOF'
 import os, sys
 db_url = os.environ.get('DATABASE_URL')
 if not db_url:
-    print("Sin DATABASE_URL, saltando limpieza")
+    print("Sin DATABASE_URL, saltando")
     sys.exit(0)
 try:
     import psycopg2
@@ -30,26 +30,54 @@ try:
     r = urlparse(db_url)
     conn = psycopg2.connect(
         dbname=r.path[1:], user=r.username, password=r.password,
-        host=r.hostname, port=r.port or 5432, sslmode='require'
+        host=r.hostname, port=r.port or 5432, sslmode='require',
+        # Forzar search_path=public desde el nivel de conexion
+        options='-c search_path=public'
     )
     conn.autocommit = True
     cur = conn.cursor()
-    # Forzar search_path=public tambien aqui
-    cur.execute("SET search_path TO public")
-    cur.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")
-    tables = [row[0] for row in cur.fetchall()]
-    if tables:
-        cur.execute('DROP TABLE IF EXISTS ' + ', '.join(f'"public"."{t}"' for t in tables) + ' CASCADE')
-        print(f"Eliminadas {len(tables)} tablas de public: {tables}")
-    else:
-        print("Base de datos limpia en esquema public")
+    
+    # Verificar y reportar search_path actual
+    cur.execute("SHOW search_path")
+    print(f"search_path actual: {cur.fetchone()[0]}")
+    
+    # Verificar esquemas existentes
+    cur.execute("SELECT nspname FROM pg_namespace WHERE nspname NOT LIKE 'pg_%' AND nspname != 'information_schema'")
+    schemas = [row[0] for row in cur.fetchall()]
+    print(f"Esquemas disponibles: {schemas}")
+    
+    # Buscar tablas en TODOS los esquemas (no solo public)
+    cur.execute("""
+        SELECT schemaname, tablename 
+        FROM pg_tables 
+        WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+    """)
+    all_tables = cur.fetchall()
+    print(f"Todas las tablas encontradas: {all_tables}")
+    
+    # Eliminar tablas en todos los esquemas de usuario
+    for schema, table in all_tables:
+        cur.execute(f'DROP TABLE IF EXISTS "{schema}"."{table}" CASCADE')
+        print(f"Eliminada: {schema}.{table}")
+    
+    # Forzar search_path=public a nivel de ROL para futuras conexiones
+    if r.username:
+        try:
+            cur.execute(f"ALTER ROLE \"{r.username}\" SET search_path TO public")
+            print(f"search_path=public asignado permanentemente al rol: {r.username}")
+        except Exception as e:
+            print(f"No se pudo cambiar search_path del rol (puede no tener permiso): {e}")
+    
     cur.close()
     conn.close()
+    print("Preparación completada")
 except Exception as e:
-    print(f"Advertencia limpieza: {e}")
+    print(f"Error en preparación: {e}")
+    import traceback
+    traceback.print_exc()
 PYEOF
 
-echo ">>> EJECUTANDO MIGRACIONES (con search_path=public via settings.py)"
+echo ">>> EJECUTANDO MIGRACIONES"
 python manage.py migrate --no-input
 
 echo ">>> CARGANDO DATOS INICIALES"
@@ -71,4 +99,4 @@ for uname in ['admin', 'messi']:
         print(f'{uname}: no encontrado')
 "
 
-echo ">>> DESPLIEGUE FINALIZADO CON EXITO"
+echo ">>> DESPLIEGUE FINALIZADO"
