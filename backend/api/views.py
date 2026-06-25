@@ -157,7 +157,7 @@ class AntecedentesViewSet(viewsets.ModelViewSet):
 
 # Reportes
 class ReporteUsuariosExcelView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         # Create workbook and sheet
@@ -205,7 +205,7 @@ class ReporteUsuariosExcelView(APIView):
         return response
 
 class ReporteUsuariosPDFView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         buffer = io.BytesIO()
@@ -256,7 +256,7 @@ class ReporteUsuariosPDFView(APIView):
 
 # --- REPORTES ---
 class ReporteBaseExcel(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     model = None
     filename = 'reporte.xlsx'
     headers = []
@@ -286,7 +286,7 @@ class ReporteBaseExcel(APIView):
 
 
 class ReporteBasePDF(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     model = None
     filename = 'reporte.pdf'
     title = 'Reporte'
