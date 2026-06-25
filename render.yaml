@@ -24,7 +24,7 @@ services:
           name: novafit-db
           property: connectionString
       - key: VITE_API_URL
-        value: "https://novafit.onrender.com/api"
+        value: "https://novafit-jxrf.onrender.com/api"
 
 # ─────────────────────────────────────────────────────────
 # BASE DE DATOS POSTGRESQL
