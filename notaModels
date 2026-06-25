@@ -1,0 +1,118 @@
+En Laravel, los modelos Eloquent tienen varias propiedades y métodos que te permiten interactuar con las bases de datos de manera efectiva. A continuación, te doy un resumen de las propiedades y métodos más comunes.
+
+### Propiedades Comunes
+
+1. **$table**: Especifica el nombre de la tabla en la base de datos. Por defecto, Eloquent usará el plural del nombre del modelo (ej. `User` → `users`).
+
+   ```php
+   protected $table = 'users';
+   ```
+
+2. **$fillable**: Un arreglo que define qué atributos son asignables en masa. Esto es importante para proteger tu aplicación contra la asignación masiva.
+
+   ```php
+   protected $fillable = ['name', 'email', 'password'];
+   ```
+
+3. **$guarded**: Un arreglo que define qué atributos no son asignables en masa. Esto es el opuesto de `$fillable`.
+
+   ```php
+   protected $guarded = ['id'];
+   ```
+
+4. **$hidden**: Atributos que deben ser ocultados en las conversiones a arreglos o JSON.
+
+   ```php
+   protected $hidden = ['password', 'remember_token'];
+   ```
+
+5. **$casts**: Especifica cómo deben ser convertidos los atributos en el modelo. Por ejemplo, puedes definir que un atributo debe ser tratado como un booleano.
+
+   ```php
+   protected $casts = [
+       'is_admin' => 'boolean',
+   ];
+   ```
+
+6. **$dates**: Un arreglo que indica qué atributos deben ser tratados como instancias de `Carbon` (para fechas y horas).
+
+   ```php
+   protected $dates = ['created_at', 'updated_at'];
+   ```
+
+### Métodos Comunes
+
+1. **Métodos de Consulta**:
+   - `all()`: Obtiene todos los registros de la tabla.
+   - `find($id)`: Encuentra un registro por su ID.
+   - `where(...)`: Aplica condiciones a la consulta.
+   - `first()`: Obtiene el primer registro que coincide con la consulta.
+
+   ```php
+   $users = User::all();
+   $user = User::find(1);
+   ```
+
+2. **Métodos de Relación**:
+   - `hasMany()`: Define una relación de uno a muchos.
+   - `belongsTo()`: Define una relación de muchos a uno.
+   - `belongsToMany()`: Define una relación de muchos a muchos.
+
+   ```php
+   public function posts() {
+       return $this->hasMany(Post::class);
+   }
+   ```
+
+3. **Métodos de Persistencia**:
+   - `save()`: Guarda el modelo en la base de datos.
+   - `delete()`: Elimina el modelo de la base de datos.
+
+   ```php
+   $user->save(); // Guardar un nuevo usuario
+   $user->delete(); // Eliminar un usuario
+   ```
+
+4. **Métodos de Acceso y Mutadores**:
+   - `get{Attribute}Attribute()`: Método para acceder a un atributo modificado.
+   - `set{Attribute}Attribute()`: Método para mutar un atributo antes de ser guardado.
+
+   ```php
+   public function getFullNameAttribute() {
+       return "{$this->name} {$this->last_name}";
+   }
+   ```
+
+5. **Otros Métodos**:
+   - `create()`: Crea un nuevo registro en la base de datos.
+   - `update()`: Actualiza un registro existente.
+   - `firstOrCreate()`: Obtiene el primer registro que coincide con las condiciones o crea uno nuevo.
+
+### Ejemplo de Uso
+
+Aquí tienes un ejemplo de cómo podrías usar algunas de estas propiedades y métodos en un modelo:
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class User extends Model
+{
+    use HasFactory;
+
+    protected $fillable = ['name', 'email', 'password'];
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+}
+
+// Uso
+$user = User::create(['name' => 'John Doe', 'email' => 'john@example.com', 'password' => bcrypt('password')]);
+$posts = $user->posts; // Obtener posts del usuario
+```
+
+Estos son solo algunos ejemplos de propiedades y métodos que puedes encontrar en los modelos de Laravel. Si tienes alguna pregunta más específica o necesitas ejemplos adicionales, ¡hazmelo saber!

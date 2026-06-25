@@ -1,0 +1,10 @@
+{
+  "name": "novafit-premium",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sistema de Informacion NovaFit Premium - Django + Vue 3",
+  "scripts": {
+    "dev:local": "run-local.bat",
+    "deploy:prod": "deploy.bat"
+  }
+}

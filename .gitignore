@@ -1,0 +1,50 @@
+# ─────────────────────────────────────────────────────────
+# PYTHON / DJANGO BACKEND
+# ─────────────────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/db.sqlite3
+backend/.env
+backend/staticfiles/
+backend/media/
+backend/pdf_images/
+backend/proyecto_text.txt
+backend/seed_data.py
+backend/seed_users.py
+backend/mi_diagrama_bd.dot
+
+# ─────────────────────────────────────────────────────────
+# NODE / VUE FRONTEND
+# ─────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+frontend/.DS_Store
+
+# ─────────────────────────────────────────────────────────
+# DOCUMENTACION (no se sube a Render, solo es local)
+# ─────────────────────────────────────────────────────────
+documentacion/
+
+# ─────────────────────────────────────────────────────────
+# PROYECTO LEGACY (no se despliega)
+# ─────────────────────────────────────────────────────────
+legacy_laravel/
+
+# ─────────────────────────────────────────────────────────
+# SISTEMA OPERATIVO
+# ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+
+# ─────────────────────────────────────────────────────────
+# EDITORES / IDEs
+# ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
