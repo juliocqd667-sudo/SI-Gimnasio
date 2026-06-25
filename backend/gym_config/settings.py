@@ -178,17 +178,35 @@ REST_FRAMEWORK = {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FIX: Forzar search_path=public en cada conexión PostgreSQL (Render)
+# FIX RENDER POSTGRESQL: Migraciones no-atómicas + search_path=public
 # ─────────────────────────────────────────────────────────────────────────────
-# Render configura el rol de PostgreSQL con search_path="$user",public
-# que puede dirigir DDL (CREATE TABLE) a un esquema de usuario en vez de public.
-# Esto causa que las migraciones subsecuentes no encuentren las tablas recién creadas.
-# La señal connection_created se ejecuta en CADA conexión nueva, incluyendo
-# las que usa el schema_editor durante las migraciones.
-def _set_search_path_public(sender, connection, **kwargs):
-    if connection.vendor == 'postgresql':
-        with connection.cursor() as cursor:
-            cursor.execute("SET search_path TO public")
+# PROBLEMA: En el PostgreSQL de Render, las tablas creadas en una migración (con
+# SAVEPOINT) no son visibles para la siguiente migración dentro de la misma sesión.
+# SOLUCIÓN 1: Forzar search_path=public en cada conexión nueva
+# SOLUCIÓN 2: Deshabilitar el wrapping atómico de las migraciones para que cada
+#             DDL se ejecute y haga commit inmediatamente (autocommit por operación)
+if DATABASE_URL:
+    # Signal: SET search_path TO public en cada conexión nueva
+    def _set_search_path_public(sender, connection, **kwargs):
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SET search_path TO public")
 
-from django.db.backends.signals import connection_created
-connection_created.connect(_set_search_path_public)
+    from django.db.backends.signals import connection_created
+    connection_created.connect(_set_search_path_public)
+
+    # Patch: forzar atomic=False en TODAS las migraciones para evitar
+    # el problema de visibilidad de DDL en SAVEPOINTs en Render PostgreSQL
+    try:
+        from django.db.migrations import executor as _mig_executor
+
+        _orig_apply_migration = _mig_executor.MigrationExecutor.apply_migration
+
+        def _non_atomic_apply_migration(self, state, migration, fake=False, fake_initial=False):
+            """Fuerza atomic=False en todas las migraciones en Render PostgreSQL."""
+            migration.atomic = False
+            return _orig_apply_migration(self, state, migration, fake=fake, fake_initial=fake_initial)
+
+        _mig_executor.MigrationExecutor.apply_migration = _non_atomic_apply_migration
+    except Exception:
+        pass  # Si el patch falla, continuar normalmente
