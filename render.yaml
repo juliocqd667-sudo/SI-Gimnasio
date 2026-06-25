@@ -3,7 +3,7 @@ services:
   # SERVICIO UNIFICADO (DJANGO + VUE.JS)
   # ─────────────────────────────────────────────────────────
   - type: web
-    name: novafit-marioly
+    name: novafit
     env: python
     region: ohio
     plan: free
@@ -21,15 +21,15 @@ services:
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
-          name: novafit-db-marioly
+          name: novafit-db
           property: connectionString
       - key: VITE_API_URL
-        value: "https://novafit-marioly.onrender.com/api"
+        value: "https://novafit.onrender.com/api"
 
 # ─────────────────────────────────────────────────────────
 # BASE DE DATOS POSTGRESQL
 # ─────────────────────────────────────────────────────────
 databases:
-  - name: novafit-db-marioly
+  - name: novafit-db
     plan: free
     region: ohio

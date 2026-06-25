@@ -25,12 +25,12 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    'novafit-marioly.onrender.com',
+    'novafit.onrender.com',
     '.onrender.com',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://novafit-marioly.onrender.com',
+    'https://novafit.onrender.com',
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -153,7 +153,7 @@ AUTH_USER_MODEL = 'core.CustomUser'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://novafit-marioly.onrender.com",
+    "https://novafit.onrender.com",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True  # Temporalmente para asegurar acceso
