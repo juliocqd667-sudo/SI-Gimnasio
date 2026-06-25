@@ -27,8 +27,19 @@ echo ">>> SETTING UP ROLES"
 python manage.py setup_roles
 
 echo ">>> FORCING PASSWORDS & ROLES"
-python manage.py shell -c "from core.models import CustomUser; u = CustomUser.objects.filter(username='admin').first(); (u.set_password('admin123'), u.is_superuser=True, u.is_staff=True, u.is_administrativo=True, u.save(), print('Admin access restored')) if u else print('Admin not found')"
-python manage.py shell -c "from core.models import CustomUser; u = CustomUser.objects.filter(username='messi').first(); (u.set_password('admin123'), u.is_superuser=True, u.is_staff=True, u.is_administrativo=True, u.save(), print('Messi access restored')) if u else print('Messi not found')"
+python manage.py shell -c "from core.models import CustomUser
+for uname in ['admin', 'messi']:
+    u = CustomUser.objects.filter(username=uname).first()
+    if u:
+        u.set_password('admin123')
+        u.is_superuser = True
+        u.is_staff = True
+        u.is_administrativo = True
+        u.save()
+        print(uname + ': restaurado')
+    else:
+        print(uname + ': no encontrado')
+"
 
 echo ">>> CREATING DEMO USERS FOR FRONTEND"
 python manage.py shell -c "from core.models import CustomUser; u, _ = CustomUser.objects.get_or_create(username='superadmin', defaults={'is_superuser':True,'is_staff':True}); u.set_password('admin123'); u.save(); print('superadmin created')"
