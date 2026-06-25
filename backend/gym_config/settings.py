@@ -26,11 +26,13 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'novafit.onrender.com',
+    'novafit-jxrf.onrender.com',
     '.onrender.com',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://novafit.onrender.com',
+    'https://novafit-jxrf.onrender.com',
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
