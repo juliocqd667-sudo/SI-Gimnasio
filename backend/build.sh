@@ -17,86 +17,24 @@ pip install -r requirements.txt
 echo ">>> DJANGO TASKS"
 python manage.py collectstatic --no-input
 
-echo ">>> PREPARANDO POSTGRESQL (search_path + limpieza)"
-python - <<'PYEOF'
-import os, sys
-db_url = os.environ.get('DATABASE_URL')
-if not db_url:
-    print("Sin DATABASE_URL, saltando")
-    sys.exit(0)
-try:
-    import psycopg2
-    from urllib.parse import urlparse
-    r = urlparse(db_url)
-    conn = psycopg2.connect(
-        dbname=r.path[1:], user=r.username, password=r.password,
-        host=r.hostname, port=r.port or 5432, sslmode='require',
-        # Forzar search_path=public desde el nivel de conexion
-        options='-c search_path=public'
-    )
-    conn.autocommit = True
-    cur = conn.cursor()
-    
-    # Verificar y reportar search_path actual
-    cur.execute("SHOW search_path")
-    print(f"search_path actual: {cur.fetchone()[0]}")
-    
-    # Verificar esquemas existentes
-    cur.execute("SELECT nspname FROM pg_namespace WHERE nspname NOT LIKE 'pg_%' AND nspname != 'information_schema'")
-    schemas = [row[0] for row in cur.fetchall()]
-    print(f"Esquemas disponibles: {schemas}")
-    
-    # Buscar tablas en TODOS los esquemas (no solo public)
-    cur.execute("""
-        SELECT schemaname, tablename 
-        FROM pg_tables 
-        WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
-    """)
-    all_tables = cur.fetchall()
-    print(f"Todas las tablas encontradas: {all_tables}")
-    
-    # Eliminar tablas en todos los esquemas de usuario
-    for schema, table in all_tables:
-        cur.execute(f'DROP TABLE IF EXISTS "{schema}"."{table}" CASCADE')
-        print(f"Eliminada: {schema}.{table}")
-    
-    # Forzar search_path=public a nivel de ROL para futuras conexiones
-    if r.username:
-        try:
-            cur.execute(f"ALTER ROLE \"{r.username}\" SET search_path TO public")
-            print(f"search_path=public asignado permanentemente al rol: {r.username}")
-        except Exception as e:
-            print(f"No se pudo cambiar search_path del rol (puede no tener permiso): {e}")
-    
-    cur.close()
-    conn.close()
-    print("Preparación completada")
-except Exception as e:
-    print(f"Error en preparación: {e}")
-    import traceback
-    traceback.print_exc()
-PYEOF
-
-echo ">>> EJECUTANDO MIGRACIONES"
+echo ">>> RUNNING MIGRATIONS"
 python manage.py migrate --no-input
 
-echo ">>> CARGANDO DATOS INICIALES"
-python manage.py loaddata data_dump.json 2>/dev/null || echo "Carga de datos falló o ya estaba cargado, continuando..."
+echo ">>> SEEDING LEGACY DATA"
+python manage.py migrate_legacy_data
 
-echo ">>> RESTAURANDO CONTRASEÑAS Y ROLES"
-python manage.py shell -c "
-from core.models import CustomUser
-for uname in ['admin', 'messi']:
-    u = CustomUser.objects.filter(username=uname).first()
-    if u:
-        u.set_password('admin123')
-        u.is_superuser = True
-        u.is_staff = True
-        u.is_administrativo = True
-        u.save()
-        print(f'{uname}: restaurado')
-    else:
-        print(f'{uname}: no encontrado')
-"
+echo ">>> SETTING UP ROLES"
+python manage.py setup_roles
 
-echo ">>> DESPLIEGUE FINALIZADO"
+echo ">>> FORCING PASSWORDS & ROLES"
+python manage.py shell -c "from core.models import CustomUser; u = CustomUser.objects.filter(username='admin').first(); (u.set_password('admin123'), u.is_superuser=True, u.is_staff=True, u.is_administrativo=True, u.save(), print('Admin access restored')) if u else print('Admin not found')"
+python manage.py shell -c "from core.models import CustomUser; u = CustomUser.objects.filter(username='messi').first(); (u.set_password('admin123'), u.is_superuser=True, u.is_staff=True, u.is_administrativo=True, u.save(), print('Messi access restored')) if u else print('Messi not found')"
+
+echo ">>> CREATING DEMO USERS FOR FRONTEND"
+python manage.py shell -c "from core.models import CustomUser; u, _ = CustomUser.objects.get_or_create(username='superadmin', defaults={'is_superuser':True,'is_staff':True}); u.set_password('admin123'); u.save(); print('superadmin created')"
+python manage.py shell -c "from core.models import CustomUser, Administrativo; u, _ = CustomUser.objects.get_or_create(username='admin', defaults={'is_administrativo':True}); u.set_password('admin123'); u.save(); Administrativo.objects.get_or_create(user=u, defaults={'cargo':'Admin','turno':'Mañana'}); print('admin created')"
+python manage.py shell -c "from core.models import CustomUser, Cliente; u, _ = CustomUser.objects.get_or_create(username='cliente1', defaults={'is_cliente':True}); u.set_password('cliente123'); u.save(); Cliente.objects.get_or_create(user=u); print('cliente1 created')"
+python manage.py shell -c "from core.models import CustomUser, Instructor; u, _ = CustomUser.objects.get_or_create(username='instructor1', defaults={'is_instructor':True}); u.set_password('instr123'); u.save(); Instructor.objects.get_or_create(user=u, defaults={'especialidad':'General'}); print('instructor1 created')"
+python manage.py shell -c "from core.models import CustomUser, Nutricionista; u, _ = CustomUser.objects.get_or_create(username='nutri1', defaults={'is_nutricionista':True}); u.set_password('nutri123'); u.save(); Nutricionista.objects.get_or_create(user=u, defaults={'horario_atencion':'Lunes a Viernes'}); print('nutri1 created')"
+
+echo ">>> DEPLOYMENT FINISHED"
