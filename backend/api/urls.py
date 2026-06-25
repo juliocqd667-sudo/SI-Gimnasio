@@ -46,5 +46,13 @@ urlpatterns = [
     path('reportes/antecedentes/pdf/', views.ReporteAntecedentesPDFView.as_view(), name='reporte-antecedentes-pdf'),
     path('reportes/seguimientos/excel/', views.ReporteSeguimientosExcelView.as_view(), name='reporte-seguimientos-excel'),
     path('reportes/seguimientos/pdf/', views.ReporteSeguimientosPDFView.as_view(), name='reporte-seguimientos-pdf'),
+    path('reportes/reservas/excel/', views.ReporteReservasExcelView.as_view(), name='reporte-reservas-excel'),
+    path('reportes/reservas/pdf/', views.ReporteReservasPDFView.as_view(), name='reporte-reservas-pdf'),
+    path('reportes/disciplinas/excel/', views.ReporteDisciplinasExcelView.as_view(), name='reporte-disciplinas-excel'),
+    path('reportes/disciplinas/pdf/', views.ReporteDisciplinasPDFView.as_view(), name='reporte-disciplinas-pdf'),
+    path('reportes/salas/excel/', views.ReporteSalasExcelView.as_view(), name='reporte-salas-excel'),
+    path('reportes/salas/pdf/', views.ReporteSalasPDFView.as_view(), name='reporte-salas-pdf'),
+    path('reportes/ejercicios/excel/', views.ReporteEjerciciosExcelView.as_view(), name='reporte-ejercicios-excel'),
+    path('reportes/ejercicios/pdf/', views.ReporteEjerciciosPDFView.as_view(), name='reporte-ejercicios-pdf'),
     path('', include(router.urls)),
 ]

@@ -425,3 +425,63 @@ class ReporteSeguimientosPDFView(ReporteBasePDF):
     title = 'Reporte de Seguimientos'
     headers = ['ID', 'Cliente', 'Instructor', 'Rutina', 'Fecha', 'Próxima Consulta', 'Objetivo', 'Observaciones']
     fields = ['id', 'cliente', 'instructor', 'rutina', 'fecha', 'fecha_prox_consulta', 'objetivo', 'observaciones']
+
+
+class ReporteReservasExcelView(ReporteBaseExcel):
+    model = Reserva
+    filename = 'reservas.xlsx'
+    headers = ['ID', 'Fecha', 'Estado', 'Cliente', 'Disciplina', 'Comprobante']
+    fields = ['id', 'fecha', 'estado', 'cliente', 'disciplina', 'comprobante']
+
+
+class ReporteReservasPDFView(ReporteBasePDF):
+    model = Reserva
+    filename = 'reservas.pdf'
+    title = 'Reporte de Reservas'
+    headers = ['ID', 'Fecha', 'Estado', 'Cliente', 'Disciplina', 'Comprobante']
+    fields = ['id', 'fecha', 'estado', 'cliente', 'disciplina', 'comprobante']
+
+
+class ReporteDisciplinasExcelView(ReporteBaseExcel):
+    model = Disciplina
+    filename = 'disciplinas.xlsx'
+    headers = ['ID', 'Nombre', 'Grupo', 'Cupo', 'Hora Inicio', 'Hora Fin', 'Sala']
+    fields = ['id', 'nombre', 'grupo', 'cupo', 'hora_inicial', 'hora_final', 'sala']
+
+
+class ReporteDisciplinasPDFView(ReporteBasePDF):
+    model = Disciplina
+    filename = 'disciplinas.pdf'
+    title = 'Reporte de Disciplinas'
+    headers = ['ID', 'Nombre', 'Grupo', 'Cupo', 'Hora Inicio', 'Hora Fin', 'Sala']
+    fields = ['id', 'nombre', 'grupo', 'cupo', 'hora_inicial', 'hora_final', 'sala']
+
+
+class ReporteSalasExcelView(ReporteBaseExcel):
+    model = Sala
+    filename = 'salas.xlsx'
+    headers = ['ID', 'Descripción', 'Capacidad']
+    fields = ['id', 'descripcion', 'capacidad']
+
+
+class ReporteSalasPDFView(ReporteBasePDF):
+    model = Sala
+    filename = 'salas.pdf'
+    title = 'Reporte de Salas'
+    headers = ['ID', 'Descripción', 'Capacidad']
+    fields = ['id', 'descripcion', 'capacidad']
+
+
+class ReporteEjerciciosExcelView(ReporteBaseExcel):
+    model = Ejercicio
+    filename = 'ejercicios.xlsx'
+    headers = ['ID', 'Nombre', 'Descripción']
+    fields = ['id', 'nombre', 'descripcion']
+
+
+class ReporteEjerciciosPDFView(ReporteBasePDF):
+    model = Ejercicio
+    filename = 'ejercicios.pdf'
+    title = 'Reporte de Ejercicios'
+    headers = ['ID', 'Nombre', 'Descripción']
+    fields = ['id', 'nombre', 'descripcion']

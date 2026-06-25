@@ -136,11 +136,11 @@ const saveDisciplina = async () => {
   if (formD.value.id) await axios.patch(`${API}/disciplinas/${formD.value.id}/`, formD.value, cfg())
   else await axios.post(`${API}/disciplinas/`, formD.value, cfg())
   showModalD.value = false
-  formD.value = { id:null, nombre:'', grupo:'', cupo:'', hora_inicial:'', hora_final:'', sala:'' }; fetchAll()
+  formD.value = { id:null, nombre:'', grupo:'', cupo:'', hora_inicial:'', hora_final:'', sala:'' }; fetchData()
 }
 const deleteDisciplina = async (id) => {
   if (!confirm('¿Eliminar disciplina?')) return
-  await axios.delete(`${API}/disciplinas/${id}/`, cfg()); fetchAll()
+  await axios.delete(`${API}/disciplinas/${id}/`, cfg()); fetchData()
 }
 
 const editHorario = (h) => { formH.value = { ...h, hora_inicial: formatTime(h.hora_inicial), hora_final: formatTime(h.hora_final) }; showModalH.value = true }
@@ -150,13 +150,13 @@ const saveHorario = async () => {
   if (formH.value.id) await axios.patch(`${API}/horarios/${formH.value.id}/`, payload, cfg())
   else await axios.post(`${API}/horarios/`, payload, cfg())
   showModalH.value = false
-  formH.value = { id:null, dia:'', hora_inicial:'', hora_final:'', disciplina:'', instructor:'' }; fetchAll()
+  formH.value = { id:null, dia:'', hora_inicial:'', hora_final:'', disciplina:'', instructor:'' }; fetchData()
 }
 const deleteHorario = async (id) => {
   if (!confirm('¿Eliminar horario?')) return
-  await axios.delete(`${API}/horarios/${id}/`, cfg()); fetchAll()
+  await axios.delete(`${API}/horarios/${id}/`, cfg()); fetchData()
 }
-onMounted(fetchAll)
+onMounted(fetchData)
 </script>
 
 <style scoped>

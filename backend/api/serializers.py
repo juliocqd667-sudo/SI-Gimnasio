@@ -10,6 +10,20 @@ class CustomUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'ci', 'telefono', 'is_superuser', 'is_cliente', 'is_instructor', 'is_nutricionista', 'is_administrativo', 'fecha_nacimiento', 'sexo', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("La contraseña debe tener al menos 8 caracteres.")
+        if not any(c.isupper() for c in value):
+            raise serializers.ValidationError("La contraseña debe tener al menos una letra mayúscula.")
+        if not any(c.islower() for c in value):
+            raise serializers.ValidationError("La contraseña debe tener al menos una letra minúscula.")
+        if not any(c.isdigit() for c in value):
+            raise serializers.ValidationError("La contraseña debe tener al menos un número.")
+        import re
+        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?`~]", value):
+            raise serializers.ValidationError("La contraseña debe tener al menos un carácter especial.")
+        return value
+
     def create(self, validated_data):
         user = CustomUser.objects.create_user(**validated_data)
         return user

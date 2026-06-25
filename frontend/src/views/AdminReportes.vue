@@ -17,9 +17,9 @@
       <div class="reporte-card" v-for="group in reportes" :key="group.titulo">
         <h3>{{ group.titulo }}</h3>
         <div class="reporte-buttons">
-          <a v-for="re in group.reportes" :key="re.key" :href="`${API}/reportes/${re.key}/`" class="btn btn-primary btn-sm" target="_blank">
+          <button v-for="re in group.reportes" :key="re.key" @click="downloadReport(re.key, group.titulo, re.label)" class="btn btn-primary btn-sm">
             {{ re.label }}
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -30,8 +30,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
 import API from '../api'
+import { useAuthStore } from '../stores/auth'
 
+const authStore = useAuthStore()
 const isListening = ref(false)
 const voiceStatus = ref('')
 let recognition = null
@@ -73,6 +76,27 @@ const reportes = ref([
     ]
   },
   {
+    titulo: 'Ejercicios',
+    reportes: [
+      { key: 'ejercicios/excel/', label: '📗 Excel' },
+      { key: 'ejercicios/pdf/', label: '📕 PDF' },
+    ]
+  },
+  {
+    titulo: 'Salas',
+    reportes: [
+      { key: 'salas/excel/', label: '📗 Excel' },
+      { key: 'salas/pdf/', label: '📕 PDF' },
+    ]
+  },
+  {
+    titulo: 'Disciplinas',
+    reportes: [
+      { key: 'disciplinas/excel/', label: '📗 Excel' },
+      { key: 'disciplinas/pdf/', label: '📕 PDF' },
+    ]
+  },
+  {
     titulo: 'Horarios',
     reportes: [
       { key: 'horarios/excel/', label: '📗 Excel' },
@@ -80,7 +104,14 @@ const reportes = ref([
     ]
   },
   {
-    titulo: 'Antecedentes',
+    titulo: 'Reservas',
+    reportes: [
+      { key: 'reservas/excel/', label: '📗 Excel' },
+      { key: 'reservas/pdf/', label: '📕 PDF' },
+    ]
+  },
+  {
+    titulo: 'Consultas',
     reportes: [
       { key: 'antecedentes/excel/', label: '📗 Excel' },
       { key: 'antecedentes/pdf/', label: '📕 PDF' },
@@ -94,6 +125,40 @@ const reportes = ref([
     ]
   },
 ])
+
+const downloadReport = async (key, title, label) => {
+  try {
+    const isPdf = key.includes('pdf')
+    const format = isPdf ? 'PDF' : 'Excel'
+    voiceStatus.value = `Descargando reporte de ${title} en formato ${format}...`
+
+    const response = await axios.get(`${API}/reportes/${key}`, {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+      responseType: 'blob'
+    })
+
+    const blob = new Blob([response.data], {
+      type: isPdf ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+
+    const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_reporte.${isPdf ? 'pdf' : 'xlsx'}`
+    link.setAttribute('download', filename)
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+
+    voiceStatus.value = `Reporte de ${title} (${format}) descargado con éxito.`
+  } catch (error) {
+    console.error(error)
+    voiceStatus.value = `Error al descargar el reporte de ${title}.`
+  }
+}
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -124,37 +189,77 @@ const startVoiceCommand = () => {
     return
   }
   isListening.value = true
-  voiceStatus.value = 'Escuchando... Di el nombre del reporte que deseas generar.'
+  voiceStatus.value = 'Escuchando... Di el nombre del reporte que deseas generar (ej: "excel de pagos" o "pdf de consultas").'
   recognition.start()
 }
 
 const processVoiceCommand = (transcript) => {
-  const reportes = {
-    'usuarios excel': 'usuarios/excel/',
-    'usuarios pdf': 'usuarios/pdf/',
-    'pagos excel': 'pagos/excel/',
-    'pagos pdf': 'pagos/pdf/',
-    'suscripciones excel': 'suscripciones/excel/',
-    'suscripciones pdf': 'suscripciones/pdf/',
-    'promociones excel': 'promociones/excel/',
-    'promociones pdf': 'promociones/pdf/',
-    'rutinas excel': 'rutinas/excel/',
-    'rutinas pdf': 'rutinas/pdf/',
-    'horarios excel': 'horarios/excel/',
-    'horarios pdf': 'horarios/pdf/',
-    'antecedentes excel': 'antecedentes/excel/',
-    'antecedentes pdf': 'antecedentes/pdf/',
-    'seguimientos excel': 'seguimientos/excel/',
-    'seguimientos pdf': 'seguimientos/pdf/',
+  const text = transcript.toLowerCase().trim()
+
+  // Detect format
+  let format = null
+  let formatLabel = ''
+  if (text.includes('excel') || text.includes('xls') || text.includes('hoja de cálculo') || text.includes('hoja de calculo')) {
+    format = 'excel'
+    formatLabel = '📗 Excel'
+  } else if (text.includes('pdf') || text.includes('documento') || text.includes('portable')) {
+    format = 'pdf'
+    formatLabel = '📕 PDF'
   }
 
-  const key = Object.keys(reportes).find(k => transcript.includes(k))
-  if (key) {
-    const url = `${API}/reportes/${reportes[key]}`
-    window.open(url, '_blank')
-    voiceStatus.value = `Generando reporte: ${key.replace(' ', ' ').toUpperCase()}`
+  // Detect section
+  let sectionKey = null
+  let sectionName = ''
+
+  if (text.includes('usuario')) {
+    sectionKey = 'usuarios'
+    sectionName = 'Usuarios'
+  } else if (text.includes('pago')) {
+    sectionKey = 'pagos'
+    sectionName = 'Pagos'
+  } else if (text.includes('suscripcion') || text.includes('suscripción')) {
+    sectionKey = 'suscripciones'
+    sectionName = 'Suscripciones'
+  } else if (text.includes('promocion') || text.includes('promoción')) {
+    sectionKey = 'promociones'
+    sectionName = 'Promociones'
+  } else if (text.includes('rutina')) {
+    sectionKey = 'rutinas'
+    sectionName = 'Rutinas'
+  } else if (text.includes('ejercicio')) {
+    sectionKey = 'ejercicios'
+    sectionName = 'Ejercicios'
+  } else if (text.includes('sala')) {
+    sectionKey = 'salas'
+    sectionName = 'Salas'
+  } else if (text.includes('disciplina') || text.includes('clase')) {
+    sectionKey = 'disciplinas'
+    sectionName = 'Disciplinas'
+  } else if (text.includes('horario')) {
+    sectionKey = 'horarios'
+    sectionName = 'Horarios'
+  } else if (text.includes('reserva')) {
+    sectionKey = 'reservas'
+    sectionName = 'Reservas'
+  } else if (text.includes('consulta') || text.includes('antecedente')) {
+    sectionKey = 'antecedentes'
+    sectionName = 'Consultas'
+  } else if (text.includes('seguimiento')) {
+    sectionKey = 'seguimientos'
+    sectionName = 'Seguimientos'
+  }
+
+  if (format && sectionKey) {
+    const key = `${sectionKey}/${format}/`
+    downloadReport(key, sectionName, formatLabel)
   } else {
-    voiceStatus.value = 'Comando no reconocido. Di: "usuarios excel", "pagos pdf", etc.'
+    if (!format && !sectionKey) {
+      voiceStatus.value = `Comando no reconocido: "${transcript}". Intenta decir: "excel de pagos" o "pdf de consultas".`
+    } else if (!format) {
+      voiceStatus.value = `Se detectó la sección "${sectionName}", pero no el formato. Di: "excel" o "pdf".`
+    } else {
+      voiceStatus.value = `Se detectó el formato "${format === 'excel' ? 'Excel' : 'PDF'}", pero no el reporte. Di: "pagos", "consultas", "usuarios", etc.`
+    }
   }
 }
 </script>
