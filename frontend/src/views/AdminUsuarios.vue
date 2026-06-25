@@ -73,10 +73,28 @@
             <div class="input-group"><label>Email</label><input type="email" v-model="form.email" class="input-field" required></div>
             <div class="input-group"><label>Nombres</label><input type="text" v-model="form.first_name" class="input-field" required></div>
             <div class="input-group"><label>Apellidos</label><input type="text" v-model="form.last_name" class="input-field" required></div>
-            <div class="input-group"><label>Contraseña</label><input type="password" v-model="form.password" class="input-field" required></div>
+            <div class="input-group">
+              <label>Contraseña</label>
+              <div class="password-input-wrapper">
+                <input :type="showPassword ? 'text' : 'password'" v-model="form.password" class="input-field" required @input="validatePassword">
+                <button type="button" class="password-toggle" @click="showPassword = !showPassword">
+                  {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+                </button>
+              </div>
+              <div class="password-strength" v-if="form.password">
+                <div class="strength-bar" :class="passwordStrengthClass" :style="{ width: passwordStrengthPercent + '%' }"></div>
+              </div>
+              <ul class="password-rules" v-if="form.password">
+                <li :class="{ valid: passwordRules.minLength }">Mínimo 8 caracteres</li>
+                <li :class="{ valid: passwordRules.hasUpper }">Una mayúscula</li>
+                <li :class="{ valid: passwordRules.hasLower }">Una minúscula</li>
+                <li :class="{ valid: passwordRules.hasNumber }">Un número</li>
+                <li :class="{ valid: passwordRules.hasSpecial }">Un carácter especial (!@#$%^&*)</li>
+              </ul>
+            </div>
             <div class="input-group"><label>Rol</label><select v-model="form.role" class="input-field"><option value="cliente">Cliente</option><option value="instructor">Instructor</option><option value="nutricionista">Nutricionista</option><option value="administrativo">Administrativo</option></select></div>
           </div>
-          <div class="modal-footer"><button type="button" class="btn btn-outline" @click="showForm = false">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>
+          <div class="modal-footer"><button type="button" class="btn btn-outline" @click="showForm = false">Cancelar</button><button type="submit" class="btn btn-primary" :disabled="!passwordValid">Guardar</button></div>
         </form>
       </div>
     </div>
@@ -96,6 +114,27 @@ const search = ref('')
 const showForm = ref(false)
 const selectedUser = ref(null)
 const form = ref({ username:'', email:'', first_name:'', last_name:'', password:'', role:'cliente' })
+const showPassword = ref(false)
+
+const passwordRules = computed(() => ({
+  minLength: form.value.password.length >= 8,
+  hasUpper: /[A-Z]/.test(form.value.password),
+  hasLower: /[a-z]/.test(form.value.password),
+  hasNumber: /[0-9]/.test(form.value.password),
+  hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(form.value.password),
+}))
+const passwordValid = computed(() => Object.values(passwordRules.value).every(Boolean))
+const passwordStrengthPercent = computed(() => {
+  const vals = Object.values(passwordRules.value)
+  return vals.filter(Boolean).length * 20
+})
+const passwordStrengthClass = computed(() => {
+  const s = passwordStrengthPercent.value
+  if (s <= 20) return 'weak'
+  if (s <= 60) return 'medium'
+  return 'strong'
+})
+const validatePassword = () => {}
 
 const filtered = computed(() => {
   if (!search.value) return users.value
@@ -159,4 +198,16 @@ onMounted(fetchUsers)
 .profile-details { display: flex; flex-direction: column; gap: 0.5rem; }
 .detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.875rem; }
 .detail-row span:first-child { color: var(--text-secondary); }
+
+.password-input-wrapper { position: relative; }
+.password-input-wrapper .input-field { width: 100%; padding-right: 2.5rem; }
+.password-toggle { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1rem; }
+.password-strength { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 0.35rem; overflow: hidden; }
+.strength-bar { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+.strength-bar.weak { background: #ef4444; }
+.strength-bar.medium { background: #f59e0b; }
+.strength-bar.strong { background: #22c55e; }
+.password-rules { list-style: none; padding: 0; margin: 0.35rem 0 0; font-size: 0.7rem; color: var(--text-muted); }
+.password-rules li { margin-bottom: 0.15rem; }
+.password-rules li.valid { color: #22c55e; }
 </style>

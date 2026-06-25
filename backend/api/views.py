@@ -253,3 +253,175 @@ class ReporteUsuariosPDFView(APIView):
         response = HttpResponse(buffer, content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename=usuarios.pdf'
         return response
+
+# --- REPORTES ---
+class ReporteBaseExcel(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    model = None
+    filename = 'reporte.xlsx'
+    headers = []
+    fields = []
+
+    def get(self, request):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Reporte"
+        ws.append(self.headers)
+        for obj in self.model.objects.all():
+            ws.append([getattr(obj, f) for f in self.fields])
+        for i, col in enumerate(ws.columns, 1):
+            max_length = 0
+            column = get_column_letter(i)
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            ws.column_dimensions[column].width = max_length + 2
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={self.filename}'
+        wb.save(response)
+        return response
+
+
+class ReporteBasePDF(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    model = None
+    filename = 'reporte.pdf'
+    title = 'Reporte'
+    headers = []
+    fields = []
+
+    def get(self, request):
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+        styles = getSampleStyleSheet()
+        elements.append(Paragraph(self.title, styles['Title']))
+        elements.append(Spacer(1, 12))
+        data = [self.headers]
+        for obj in self.model.objects.all():
+            data.append([str(getattr(obj, f)) for f in self.fields])
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        elements.append(table)
+        doc.build(elements)
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename={self.filename}'
+        return response
+
+
+class ReportePagosExcelView(ReporteBaseExcel):
+    model = Pago
+    filename = 'pagos.xlsx'
+    headers = ['ID', 'Cliente', 'Administrador', 'Membresía', 'Plan', 'Monto', 'Fecha', 'Método', 'Estado']
+    fields = ['id', 'cliente', 'administrador', 'suscripcion', 'suscripcion', 'monto_total', 'fecha', 'metodo_pago', 'estado_pago']
+
+
+class ReportePagosPDFView(ReporteBasePDF):
+    model = Pago
+    filename = 'pagos.pdf'
+    title = 'Reporte de Pagos'
+    headers = ['ID', 'Cliente', 'Administrador', 'Membresía', 'Plan', 'Monto', 'Fecha', 'Método', 'Estado']
+    fields = ['id', 'cliente', 'administrador', 'suscripcion', 'suscripcion', 'monto_total', 'fecha', 'metodo_pago', 'estado_pago']
+
+
+class ReporteSuscripcionesExcelView(ReporteBaseExcel):
+    model = Suscripcion
+    filename = 'suscripciones.xlsx'
+    headers = ['ID', 'Membresía', 'Plan', 'Descripción', 'Precio']
+    fields = ['id', 'membresia', 'plan', 'descripcion', 'precio']
+
+
+class ReporteSuscripcionesPDFView(ReporteBasePDF):
+    model = Suscripcion
+    filename = 'suscripciones.pdf'
+    title = 'Reporte de Suscripciones'
+    headers = ['ID', 'Membresía', 'Plan', 'Descripción', 'Precio']
+    fields = ['id', 'membresia', 'plan', 'descripcion', 'precio']
+
+
+class ReportePromocionesExcelView(ReporteBaseExcel):
+    model = Promocion
+    filename = 'promociones.xlsx'
+    headers = ['ID', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Fecha Inicio', 'Fecha Fin', 'Descripción']
+    fields = ['id', 'nombre', 'tipo', 'valor', 'estado', 'fecha_ini', 'fecha_fin', 'descripcion']
+
+
+class ReportePromocionesPDFView(ReporteBasePDF):
+    model = Promocion
+    filename = 'promociones.pdf'
+    title = 'Reporte de Promociones'
+    headers = ['ID', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Fecha Inicio', 'Fecha Fin', 'Descripción']
+    fields = ['id', 'nombre', 'tipo', 'valor', 'estado', 'fecha_ini', 'fecha_fin', 'descripcion']
+
+
+class ReporteRutinasExcelView(ReporteBaseExcel):
+    model = Rutina
+    filename = 'rutinas.xlsx'
+    headers = ['ID', 'Nombre', 'Descripción']
+    fields = ['id', 'nombre', 'descripcion']
+
+
+class ReporteRutinasPDFView(ReporteBasePDF):
+    model = Rutina
+    filename = 'rutinas.pdf'
+    title = 'Reporte de Rutinas'
+    headers = ['ID', 'Nombre', 'Descripción']
+    fields = ['id', 'nombre', 'descripcion']
+
+
+class ReporteHorariosExcelView(ReporteBaseExcel):
+    model = Horario
+    filename = 'horarios.xlsx'
+    headers = ['ID', 'Disciplina', 'Día', 'Hora Inicio', 'Hora Fin']
+    fields = ['id', 'disciplina', 'dia', 'hora_inicial', 'hora_final']
+
+
+class ReporteHorariosPDFView(ReporteBasePDF):
+    model = Horario
+    filename = 'horarios.pdf'
+    title = 'Reporte de Horarios'
+    headers = ['ID', 'Disciplina', 'Día', 'Hora Inicio', 'Hora Fin']
+    fields = ['id', 'disciplina', 'dia', 'hora_inicial', 'hora_final']
+
+
+class ReporteAntecedentesExcelView(ReporteBaseExcel):
+    model = Antecedentes
+    filename = 'antecedentes.xlsx'
+    headers = ['ID', 'Cliente', 'Nutricionista', 'Fecha', 'Diagnóstico', 'Objetivo', 'Peso', 'Altura', 'IMC']
+    fields = ['id', 'cliente', 'nutricionista', 'fecha', 'diagnostico', 'objetivo', 'peso', 'altura', 'imc']
+
+
+class ReporteAntecedentesPDFView(ReporteBasePDF):
+    model = Antecedentes
+    filename = 'antecedentes.pdf'
+    title = 'Reporte de Antecedentes'
+    headers = ['ID', 'Cliente', 'Nutricionista', 'Fecha', 'Diagnóstico', 'Objetivo', 'Peso', 'Altura', 'IMC']
+    fields = ['id', 'cliente', 'nutricionista', 'fecha', 'diagnostico', 'objetivo', 'peso', 'altura', 'imc']
+
+
+class ReporteSeguimientosExcelView(ReporteBaseExcel):
+    model = Seguimiento
+    filename = 'seguimientos.xlsx'
+    headers = ['ID', 'Cliente', 'Instructor', 'Rutina', 'Fecha', 'Próxima Consulta', 'Objetivo', 'Observaciones']
+    fields = ['id', 'cliente', 'instructor', 'rutina', 'fecha', 'fecha_prox_consulta', 'objetivo', 'observaciones']
+
+
+class ReporteSeguimientosPDFView(ReporteBasePDF):
+    model = Seguimiento
+    filename = 'seguimientos.pdf'
+    title = 'Reporte de Seguimientos'
+    headers = ['ID', 'Cliente', 'Instructor', 'Rutina', 'Fecha', 'Próxima Consulta', 'Objetivo', 'Observaciones']
+    fields = ['id', 'cliente', 'instructor', 'rutina', 'fecha', 'fecha_prox_consulta', 'objetivo', 'observaciones']

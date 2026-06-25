@@ -33,6 +33,10 @@
             <span class="nav-icon">🎉</span>
             <span v-if="!sidebarCollapsed" class="nav-text">Promociones</span>
           </router-link>
+          <router-link to="/admin/reportes" class="nav-item" active-class="active">
+            <span class="nav-icon">📊</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">Reportes</span>
+          </router-link>
         </template>
 
         <!-- ENTRENAMIENTO: SuperAdmin + Instructor -->

@@ -61,6 +61,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/admin/reportes',
+    name: 'AdminReportes',
+    component: () => import('../views/AdminReportes.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/nutricionista/antecedentes',
     name: 'NutricionistaAntecedentes',
     component: () => import('../views/NutricionistaAntecedentes.vue'),
