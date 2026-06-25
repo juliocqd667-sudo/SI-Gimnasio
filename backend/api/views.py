@@ -259,16 +259,16 @@ class ReporteBaseExcel(APIView):
     permission_classes = [permissions.AllowAny]
     model = None
     filename = 'reporte.xlsx'
-    headers = []
-    fields = []
+    report_headers = []
+    report_fields = []
 
     def get(self, request):
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "Reporte"
-        ws.append(self.headers)
+        ws.append(self.report_headers)
         for obj in self.model.objects.all():
-            ws.append([getattr(obj, f) for f in self.fields])
+            ws.append([getattr(obj, f) for f in self.report_fields])
         for i, col in enumerate(ws.columns, 1):
             max_length = 0
             column = get_column_letter(i)
@@ -290,8 +290,8 @@ class ReporteBasePDF(APIView):
     model = None
     filename = 'reporte.pdf'
     title = 'Reporte'
-    headers = []
-    fields = []
+    report_headers = []
+    report_fields = []
 
     def get(self, request):
         buffer = io.BytesIO()
@@ -300,9 +300,9 @@ class ReporteBasePDF(APIView):
         styles = getSampleStyleSheet()
         elements.append(Paragraph(self.title, styles['Title']))
         elements.append(Spacer(1, 12))
-        data = [self.headers]
+        data = [self.report_headers]
         for obj in self.model.objects.all():
-            data.append([str(getattr(obj, f)) for f in self.fields])
+            data.append([str(getattr(obj, f)) for f in self.report_fields])
         table = Table(data)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -325,163 +325,163 @@ class ReporteBasePDF(APIView):
 class ReportePagosExcelView(ReporteBaseExcel):
     model = Pago
     filename = 'pagos.xlsx'
-    headers = ['ID', 'Cliente', 'Administrador', 'Membresía', 'Plan', 'Monto', 'Fecha', 'Método', 'Estado']
-    fields = ['id', 'cliente', 'administrador', 'suscripcion', 'suscripcion', 'monto_total', 'fecha', 'metodo_pago', 'estado_pago']
+    report_headers = ['ID', 'Cliente', 'Administrador', 'Membresía', 'Plan', 'Monto', 'Fecha', 'Método', 'Estado']
+    report_fields = ['id', 'cliente', 'administrador', 'suscripcion', 'suscripcion', 'monto_total', 'fecha', 'metodo_pago', 'estado_pago']
 
 
 class ReportePagosPDFView(ReporteBasePDF):
     model = Pago
     filename = 'pagos.pdf'
     title = 'Reporte de Pagos'
-    headers = ['ID', 'Cliente', 'Administrador', 'Membresía', 'Plan', 'Monto', 'Fecha', 'Método', 'Estado']
-    fields = ['id', 'cliente', 'administrador', 'suscripcion', 'suscripcion', 'monto_total', 'fecha', 'metodo_pago', 'estado_pago']
+    report_headers = ['ID', 'Cliente', 'Administrador', 'Membresía', 'Plan', 'Monto', 'Fecha', 'Método', 'Estado']
+    report_fields = ['id', 'cliente', 'administrador', 'suscripcion', 'suscripcion', 'monto_total', 'fecha', 'metodo_pago', 'estado_pago']
 
 
 class ReporteSuscripcionesExcelView(ReporteBaseExcel):
     model = Suscripcion
     filename = 'suscripciones.xlsx'
-    headers = ['ID', 'Membresía', 'Plan', 'Descripción', 'Precio']
-    fields = ['id', 'membresia', 'plan', 'descripcion', 'precio']
+    report_headers = ['ID', 'Membresía', 'Plan', 'Descripción', 'Precio']
+    report_fields = ['id', 'membresia', 'plan', 'descripcion', 'precio']
 
 
 class ReporteSuscripcionesPDFView(ReporteBasePDF):
     model = Suscripcion
     filename = 'suscripciones.pdf'
     title = 'Reporte de Suscripciones'
-    headers = ['ID', 'Membresía', 'Plan', 'Descripción', 'Precio']
-    fields = ['id', 'membresia', 'plan', 'descripcion', 'precio']
+    report_headers = ['ID', 'Membresía', 'Plan', 'Descripción', 'Precio']
+    report_fields = ['id', 'membresia', 'plan', 'descripcion', 'precio']
 
 
 class ReportePromocionesExcelView(ReporteBaseExcel):
     model = Promocion
     filename = 'promociones.xlsx'
-    headers = ['ID', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Fecha Inicio', 'Fecha Fin', 'Descripción']
-    fields = ['id', 'nombre', 'tipo', 'valor', 'estado', 'fecha_ini', 'fecha_fin', 'descripcion']
+    report_headers = ['ID', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Fecha Inicio', 'Fecha Fin', 'Descripción']
+    report_fields = ['id', 'nombre', 'tipo', 'valor', 'estado', 'fecha_ini', 'fecha_fin', 'descripcion']
 
 
 class ReportePromocionesPDFView(ReporteBasePDF):
     model = Promocion
     filename = 'promociones.pdf'
     title = 'Reporte de Promociones'
-    headers = ['ID', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Fecha Inicio', 'Fecha Fin', 'Descripción']
-    fields = ['id', 'nombre', 'tipo', 'valor', 'estado', 'fecha_ini', 'fecha_fin', 'descripcion']
+    report_headers = ['ID', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Fecha Inicio', 'Fecha Fin', 'Descripción']
+    report_fields = ['id', 'nombre', 'tipo', 'valor', 'estado', 'fecha_ini', 'fecha_fin', 'descripcion']
 
 
 class ReporteRutinasExcelView(ReporteBaseExcel):
     model = Rutina
     filename = 'rutinas.xlsx'
-    headers = ['ID', 'Nombre', 'Descripción']
-    fields = ['id', 'nombre', 'descripcion']
+    report_headers = ['ID', 'Nombre', 'Descripción']
+    report_fields = ['id', 'nombre', 'descripcion']
 
 
 class ReporteRutinasPDFView(ReporteBasePDF):
     model = Rutina
     filename = 'rutinas.pdf'
     title = 'Reporte de Rutinas'
-    headers = ['ID', 'Nombre', 'Descripción']
-    fields = ['id', 'nombre', 'descripcion']
+    report_headers = ['ID', 'Nombre', 'Descripción']
+    report_fields = ['id', 'nombre', 'descripcion']
 
 
 class ReporteHorariosExcelView(ReporteBaseExcel):
     model = Horario
     filename = 'horarios.xlsx'
-    headers = ['ID', 'Disciplina', 'Día', 'Hora Inicio', 'Hora Fin']
-    fields = ['id', 'disciplina', 'dia', 'hora_inicial', 'hora_final']
+    report_headers = ['ID', 'Disciplina', 'Día', 'Hora Inicio', 'Hora Fin']
+    report_fields = ['id', 'disciplina', 'dia', 'hora_inicial', 'hora_final']
 
 
 class ReporteHorariosPDFView(ReporteBasePDF):
     model = Horario
     filename = 'horarios.pdf'
     title = 'Reporte de Horarios'
-    headers = ['ID', 'Disciplina', 'Día', 'Hora Inicio', 'Hora Fin']
-    fields = ['id', 'disciplina', 'dia', 'hora_inicial', 'hora_final']
+    report_headers = ['ID', 'Disciplina', 'Día', 'Hora Inicio', 'Hora Fin']
+    report_fields = ['id', 'disciplina', 'dia', 'hora_inicial', 'hora_final']
 
 
 class ReporteAntecedentesExcelView(ReporteBaseExcel):
     model = Antecedentes
     filename = 'antecedentes.xlsx'
-    headers = ['ID', 'Cliente', 'Nutricionista', 'Fecha', 'Diagnóstico', 'Objetivo', 'Peso', 'Altura', 'IMC']
-    fields = ['id', 'cliente', 'nutricionista', 'fecha', 'diagnostico', 'objetivo', 'peso', 'altura', 'imc']
+    report_headers = ['ID', 'Cliente', 'Nutricionista', 'Fecha', 'Diagnóstico', 'Objetivo', 'Peso', 'Altura', 'IMC']
+    report_fields = ['id', 'cliente', 'nutricionista', 'fecha', 'diagnostico', 'objetivo', 'peso', 'altura', 'imc']
 
 
 class ReporteAntecedentesPDFView(ReporteBasePDF):
     model = Antecedentes
     filename = 'antecedentes.pdf'
     title = 'Reporte de Antecedentes'
-    headers = ['ID', 'Cliente', 'Nutricionista', 'Fecha', 'Diagnóstico', 'Objetivo', 'Peso', 'Altura', 'IMC']
-    fields = ['id', 'cliente', 'nutricionista', 'fecha', 'diagnostico', 'objetivo', 'peso', 'altura', 'imc']
+    report_headers = ['ID', 'Cliente', 'Nutricionista', 'Fecha', 'Diagnóstico', 'Objetivo', 'Peso', 'Altura', 'IMC']
+    report_fields = ['id', 'cliente', 'nutricionista', 'fecha', 'diagnostico', 'objetivo', 'peso', 'altura', 'imc']
 
 
 class ReporteSeguimientosExcelView(ReporteBaseExcel):
     model = Seguimiento
     filename = 'seguimientos.xlsx'
-    headers = ['ID', 'Cliente', 'Instructor', 'Rutina', 'Fecha', 'Próxima Consulta', 'Objetivo', 'Observaciones']
-    fields = ['id', 'cliente', 'instructor', 'rutina', 'fecha', 'fecha_prox_consulta', 'objetivo', 'observaciones']
+    report_headers = ['ID', 'Cliente', 'Instructor', 'Rutina', 'Fecha', 'Próxima Consulta', 'Objetivo', 'Observaciones']
+    report_fields = ['id', 'cliente', 'instructor', 'rutina', 'fecha', 'fecha_prox_consulta', 'objetivo', 'observaciones']
 
 
 class ReporteSeguimientosPDFView(ReporteBasePDF):
     model = Seguimiento
     filename = 'seguimientos.pdf'
     title = 'Reporte de Seguimientos'
-    headers = ['ID', 'Cliente', 'Instructor', 'Rutina', 'Fecha', 'Próxima Consulta', 'Objetivo', 'Observaciones']
-    fields = ['id', 'cliente', 'instructor', 'rutina', 'fecha', 'fecha_prox_consulta', 'objetivo', 'observaciones']
+    report_headers = ['ID', 'Cliente', 'Instructor', 'Rutina', 'Fecha', 'Próxima Consulta', 'Objetivo', 'Observaciones']
+    report_fields = ['id', 'cliente', 'instructor', 'rutina', 'fecha', 'fecha_prox_consulta', 'objetivo', 'observaciones']
 
 
 class ReporteReservasExcelView(ReporteBaseExcel):
     model = Reserva
     filename = 'reservas.xlsx'
-    headers = ['ID', 'Fecha', 'Estado', 'Cliente', 'Disciplina', 'Comprobante']
-    fields = ['id', 'fecha', 'estado', 'cliente', 'disciplina', 'comprobante']
+    report_headers = ['ID', 'Fecha', 'Estado', 'Cliente', 'Disciplina', 'Comprobante']
+    report_fields = ['id', 'fecha', 'estado', 'cliente', 'disciplina', 'comprobante']
 
 
 class ReporteReservasPDFView(ReporteBasePDF):
     model = Reserva
     filename = 'reservas.pdf'
     title = 'Reporte de Reservas'
-    headers = ['ID', 'Fecha', 'Estado', 'Cliente', 'Disciplina', 'Comprobante']
-    fields = ['id', 'fecha', 'estado', 'cliente', 'disciplina', 'comprobante']
+    report_headers = ['ID', 'Fecha', 'Estado', 'Cliente', 'Disciplina', 'Comprobante']
+    report_fields = ['id', 'fecha', 'estado', 'cliente', 'disciplina', 'comprobante']
 
 
 class ReporteDisciplinasExcelView(ReporteBaseExcel):
     model = Disciplina
     filename = 'disciplinas.xlsx'
-    headers = ['ID', 'Nombre', 'Grupo', 'Cupo', 'Hora Inicio', 'Hora Fin', 'Sala']
-    fields = ['id', 'nombre', 'grupo', 'cupo', 'hora_inicial', 'hora_final', 'sala']
+    report_headers = ['ID', 'Nombre', 'Grupo', 'Cupo', 'Hora Inicio', 'Hora Fin', 'Sala']
+    report_fields = ['id', 'nombre', 'grupo', 'cupo', 'hora_inicial', 'hora_final', 'sala']
 
 
 class ReporteDisciplinasPDFView(ReporteBasePDF):
     model = Disciplina
     filename = 'disciplinas.pdf'
     title = 'Reporte de Disciplinas'
-    headers = ['ID', 'Nombre', 'Grupo', 'Cupo', 'Hora Inicio', 'Hora Fin', 'Sala']
-    fields = ['id', 'nombre', 'grupo', 'cupo', 'hora_inicial', 'hora_final', 'sala']
+    report_headers = ['ID', 'Nombre', 'Grupo', 'Cupo', 'Hora Inicio', 'Hora Fin', 'Sala']
+    report_fields = ['id', 'nombre', 'grupo', 'cupo', 'hora_inicial', 'hora_final', 'sala']
 
 
 class ReporteSalasExcelView(ReporteBaseExcel):
     model = Sala
     filename = 'salas.xlsx'
-    headers = ['ID', 'Descripción', 'Capacidad']
-    fields = ['id', 'descripcion', 'capacidad']
+    report_headers = ['ID', 'Descripción', 'Capacidad']
+    report_fields = ['id', 'descripcion', 'capacidad']
 
 
 class ReporteSalasPDFView(ReporteBasePDF):
     model = Sala
     filename = 'salas.pdf'
     title = 'Reporte de Salas'
-    headers = ['ID', 'Descripción', 'Capacidad']
-    fields = ['id', 'descripcion', 'capacidad']
+    report_headers = ['ID', 'Descripción', 'Capacidad']
+    report_fields = ['id', 'descripcion', 'capacidad']
 
 
 class ReporteEjerciciosExcelView(ReporteBaseExcel):
     model = Ejercicio
     filename = 'ejercicios.xlsx'
-    headers = ['ID', 'Nombre', 'Descripción']
-    fields = ['id', 'nombre', 'descripcion']
+    report_headers = ['ID', 'Nombre', 'Descripción']
+    report_fields = ['id', 'nombre', 'descripcion']
 
 
 class ReporteEjerciciosPDFView(ReporteBasePDF):
     model = Ejercicio
     filename = 'ejercicios.pdf'
     title = 'Reporte de Ejercicios'
-    headers = ['ID', 'Nombre', 'Descripción']
-    fields = ['id', 'nombre', 'descripcion']
+    report_headers = ['ID', 'Nombre', 'Descripción']
+    report_fields = ['id', 'nombre', 'descripcion']

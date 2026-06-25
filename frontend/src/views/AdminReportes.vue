@@ -6,9 +6,11 @@
         <h1>Reportes del Sistema</h1>
         <p class="page-subtitle">Genera reportes en Excel y PDF de toda la información.</p>
       </div>
-      <div class="header-actions">
-        <button class="btn btn-outline" @click="startVoiceCommand" :class="{ listening: isListening }">
-          🎤 {{ isListening ? 'Escuchando...' : 'Comando por voz' }}
+      <div class="voice-command-container">
+        <button class="voice-btn" @click="startVoiceCommand" :class="{ listening: isListening }">
+          <span class="voice-icon">🎤</span>
+          <span class="voice-text">{{ isListening ? 'Escuchando orden...' : 'Control por Voz' }}</span>
+          <span class="voice-pulse" v-if="isListening"></span>
         </button>
       </div>
     </header>
@@ -269,8 +271,75 @@ const processVoiceCommand = (transcript) => {
 .reporte-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; }
 .reporte-card h3 { font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-primary); }
 .reporte-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.header-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+/* Voice Command Button Premium Style */
+.voice-command-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.voice-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1.6rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.voice-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+}
+.voice-btn:active {
+  transform: translateY(1px);
+}
+.voice-icon {
+  font-size: 1.2rem;
+}
+.voice-text {
+  letter-spacing: 0.02em;
+}
+.voice-btn.listening {
+  background: linear-gradient(135deg, #ef4444, #f43f5e);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+  animation: pulse-glow 1.5s infinite;
+}
+.voice-pulse {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  animation: ripple 1.5s infinite;
+  opacity: 0;
+}
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    box-shadow: 0 4px 30px rgba(239, 68, 68, 0.85);
+  }
+}
+@keyframes ripple {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
 .status-bar { margin-top: 1rem; padding: 0.75rem; background: rgba(99,102,241,0.1); border: 1px solid var(--accent-color); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--accent-hover); }
-.listening { border-color: #ef4444; color: #ef4444; animation: pulse 1.5s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 </style>
